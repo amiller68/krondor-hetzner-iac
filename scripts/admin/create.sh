@@ -5,6 +5,8 @@
 
 source .env
 
+export ADMIN_PUB_KEY_PATH=${ADMIN_KEY_PATH}.pub
+
 # Create the admin user -- should ask for a password that you got from the host provider
 export ANSIBLE_HOST_KEY_CHECKING=False
 ansible-playbook -i "$INVENTORY_PATH" \

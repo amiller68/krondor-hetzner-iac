@@ -12,7 +12,7 @@ Ubuntu 22.04.2 LTS (Jammy Jellyfish)
 
 # Non Default Configuration
 
-- set hostname to `krondor-hetzner-ax41nvme`
+- set hostname to `krondor-ax41-nvme`
 - Extend SWAP size from 32 GiB to 64 GiB
 
 # Usable Storage

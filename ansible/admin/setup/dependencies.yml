@@ -16,8 +16,8 @@
         name: "{{ item }}"
         state: present
         force_apt_get: true
+      # Packages you want available to all users
       with_items:
         - gcc
         - git
         - aria2
-        - tmux

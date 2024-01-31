@@ -81,13 +81,14 @@
         path: /home/{{ user_name }}/.ssh/authorized_keys
         line: "{{ admin_ssh_pub_key.stdout }}"
         state: present
-        regexp: "^{{ admin_ssh_pub_key.stdout }}"
+        regexp: "^{{ admin_ssh_pub_key.stdout | regex_escape() }}"
       ignore_errors: yes
+
     - name: Add the user's ssh pub key
       become: yes
       lineinfile:
         path: /home/{{ user_name }}/.ssh/authorized_keys
         line: "{{ user_ssh_pub_key }}"
         state: present
-        regexp: "^{{ user_ssh_pub_key }}"
+        regexp: "^{{ user_ssh_pub_key | regex_escape() }}"
       when: user_ssh_pub_key is defined

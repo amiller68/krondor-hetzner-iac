@@ -15,7 +15,7 @@ Organized as:
 <host-name>.<service-name> -- should specify ip, path to admin's ssh key, AND appropriate service name. This allows us to administer services as a sudoer, but restrict the privileges they have.
 
 Hetzner servers with static IPs:
-- krondor-hetzner-ax41nvme
+- krondor-ax41-nvme
     - info: https://www.hetzner.com/dedicated-rootserver/ax41-nvme/
     - ip: 65.108.195.167
-    - host_name: krondor-hetzner-ax41nvme
+    - host_name: krondor-ax41-nvme

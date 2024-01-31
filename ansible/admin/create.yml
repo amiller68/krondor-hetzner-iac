@@ -69,7 +69,9 @@
         regexp: "^{{ user_ssh_pub_key }}"
       when: user_ssh_pub_key is defined
 
+    # TODO: maybe this should be split out into another playbook
     # Lock the door on your way out. When run as root, this will disable root login
+    #  BE VERY SURE YOU ARE INLUDING A VALID PUB KEY FOR THE USER YOU ARE CREATING
     - name: Disable root login
       become: yes
       lineinfile:
