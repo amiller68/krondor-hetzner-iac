@@ -1,0 +1,20 @@
+# Model
+
+Ax41 NVME: https://www.hetzner.com/dedicated-rootserver/ax41-nvme/
+
+# Distro
+
+Ubuntu 22.04.2 LTS (Jammy Jellyfish)
+
+# IP
+
+65.108.195.167
+
+# Non Default Configuration
+
+- set hostname to `krondor-hetzner-ax41nvme`
+- Extend SWAP size from 32 GiB to 64 GiB
+
+# Usable Storage
+
+- 476.96 GiB NVME SSD RAID 1 across 2 512 GiB disks

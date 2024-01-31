@@ -1,0 +1,102 @@
+# Create a new Admin user on the host
+# Allows to configure:
+# - username
+# - ssh pub key
+# The specified user will be created if it does not exist
+# Its permissions will be updated if they are different
+# The specified ssh pub key will be added to the user's authorized_keys
+# If the user already has a different ssh pub key, it will be removed
+# If the specified user is root, the root login will be disabled
+
+- hosts: all
+  name: Create an admin user on the host
+  tasks:
+    - name: Are we running as root?
+      become: yes
+      shell: "whoami"
+      register: whoami
+      ignore_errors: yes
+    - name: Set is_root fact
+      set_fact:
+        is_root: "{{ whoami.stdout == 'root' }}"
+
+    - name: Create an admin group if it does not exist
+      become: yes
+      group:
+        name: admin
+        state: present
+    - name: Create the admin user if it does not exist
+      become: yes
+      user:
+        name: "{{ user_name }}"
+        groups: admin
+        append: yes
+        state: present
+    - name: Make admins passwordless sudoers
+      become: yes
+      lineinfile:
+        path: /etc/sudoers
+        line: "%admin ALL=(ALL) NOPASSWD: ALL"
+        state: present
+        regexp: "^%admin ALL=(ALL) NOPASSWD: ALL"
+
+    - name: Get the users ssh pub key from the control machine
+      set_fact:
+        user_ssh_pub_key: "{{ lookup('file', '{{ user_ssh_pub_key_path }}') }}"
+      when: user_ssh_pub_key_path is defined
+    - name: Make sure the user has a .ssh directory
+      become: yes
+      file:
+        path: /home/{{ user_name }}/.ssh
+        state: directory
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode: '0700'
+    - name: Make sure the user has an authorized_keys file
+      become: yes
+      file:
+        path: /home/{{ user_name }}/.ssh/authorized_keys
+        state: touch
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode: '0600'
+    - name: Add the user's ssh pub key
+      become: yes
+      lineinfile:
+        path: /home/{{ user_name }}/.ssh/authorized_keys
+        line: "{{ user_ssh_pub_key }}"
+        state: present
+        regexp: "^{{ user_ssh_pub_key }}"
+      when: user_ssh_pub_key is defined
+
+    # Lock the door on your way out. When run as root, this will disable root login
+    - name: Disable root login
+      become: yes
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        line: "PermitRootLogin no"
+        state: present
+        regexp: "^PermitRootLogin"
+      when: is_root
+    - name: Disable password login
+      become: yes
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        line: "PasswordAuthentication no"
+        state: present
+        regexp: "^PasswordAuthentication"
+      when: is_root
+    - name: Enable ssh key login
+      become: yes
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        line: "PubkeyAuthentication yes"
+        state: present
+        regexp: "^PubkeyAuthentication"
+      when: is_root
+    - name: Restart sshd
+      become: yes
+      service:
+        name: sshd
+        state: restarted
+      when: is_root

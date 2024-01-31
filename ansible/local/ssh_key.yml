@@ -1,0 +1,21 @@
+# Generate ssh key on the control machine:
+# Allowed configuration values:
+#     - path (string): Path to the private key file under ~/.ssh
+
+- name: Generate ECDH SSH key
+  hosts: localhost
+  connection: local
+  gather_facts: yes
+  tasks:
+    - name: Ensure ECDSA SSH key pair is present
+      community.crypto.openssh_keypair:
+        path: "{{ ssh_path }}"
+        type: ecdsa
+        size: 384 
+        state: present
+        force: no
+      register: ssh_key
+
+    - name: Display SSH public key
+      debug:
+        var: ssh_key.public_key

@@ -1,0 +1,93 @@
+# Setup a new user on the host
+# Allows to configure:
+# - username
+# - ssh pub key
+# The specified user will be created if it does not exist
+# Its permissions will be updated if they are different
+# The specified ssh pub key will be added to the user's authorized_keys
+# If the user already has a different ssh pub key, it will be removed
+# Must be run as sudoer
+
+- hosts: all
+  name: Setup a Hetzner instance with a specified user
+  tasks:
+    # Check if the admin user exists and is a sudoer
+    - name: Check if the admin user exists
+      become: yes
+      shell: "id admin"
+      register: admin_user_exists
+      ignore_errors: yes
+    - name: Check if the admin user is a sudoer
+      become: yes
+      shell: "cat /etc/sudoers | grep admin"
+      register: admin_user_is_sudoer
+      ignore_errors: yes
+      when: admin_user_exists.rc == 0
+    - name: Fail if the admin user does not exist or is not a sudoer
+      fail:
+        msg: "The admin user must exist and be a sudoer. Are you running this as root?"
+      when: admin_user_exists.rc != 0 or admin_user_is_sudoer.rc != 0
+
+    # Create the user if it does not exist
+    - name: Generate a random password
+      set_fact:
+        # You really shouldn't need this for anything
+        user_password: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters,digits') }}"
+    - name: Create the user
+      become: yes
+      user:
+        name: "{{ user_name }}"
+        password: "{{ user_password }}"
+        shell: /bin/bash
+        update_password: always
+        state: present
+    - name: Save the user's password to a file on the instance
+      become: yes
+      copy:
+        content: "{{ user_password }}"
+        dest: /home/{{ user_name }}/{{ user_name }}.password
+        mode: '0600'
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+
+    # Set up SSH for the user
+    - name: Get the admin user's ssh pub key
+      become: yes
+      shell: "cat /home/admin/.ssh/authorized_keys"
+      register: admin_ssh_pub_key
+    - name: Get the users ssh pub key from the control machine
+      set_fact:
+        user_ssh_pub_key: "{{ lookup('file', '{{ user_ssh_pub_key_path }}') }}"
+      when: user_ssh_pub_key_path is defined
+    - name: Make sure the user has a .ssh directory
+      become: yes
+      file:
+        path: /home/{{ user_name }}/.ssh
+        state: directory
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode: '0700'
+    - name: Make sure the user has an authorized_keys file
+      become: yes
+      file:
+        path: /home/{{ user_name }}/.ssh/authorized_keys
+        state: touch
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode: '0600'
+    - name: Add the admin's ssh pub key
+      become: yes
+      lineinfile:
+        path: /home/{{ user_name }}/.ssh/authorized_keys
+        line: "{{ admin_ssh_pub_key.stdout }}"
+        state: present
+        regexp: "^{{ admin_ssh_pub_key.stdout }}"
+      ignore_errors: yes
+    - name: Add the user's ssh pub key
+      become: yes
+      lineinfile:
+        path: /home/{{ user_name }}/.ssh/authorized_keys
+        line: "{{ user_ssh_pub_key }}"
+        state: present
+        regexp: "^{{ user_ssh_pub_key }}"
+      when: user_ssh_pub_key is defined
