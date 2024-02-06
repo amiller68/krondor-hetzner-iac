@@ -1,0 +1,80 @@
+# Initialize our Nginx Configuration
+# Configuraiton:
+# - email: email to associate with the certificate
+# - domain: your domain (this should already have an A record pointing to your domain)
+# TODO: configure static assets based on domain perhaps. For now I only care about a single domain.
+
+- name: Debug
+  debug:
+    msg:
+     - "Init Nginx"
+     - "{{ service_user }}"
+     - "{{ service_group }}"
+     - "{{ email }}"
+     - "{{ domain }}"
+     - "{{ key_path }}"
+     - "{{ cert_path }}"
+
+- name: Create the service
+  import_tasks: ../utils/create_service.tasks.yml
+
+- name: Remove default Nginx configuration
+  become: yes
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+# Setup static files and associated permissions
+- name: Copy static site files
+  become: yes
+  copy:
+    src: ./static
+    dest: "/var/www/html/{{ domain }}"
+    owner: "{{ service_user }}"
+    group: "{{ service_group }}"
+    mode: '0755'
+- name: Extract static files
+  find:
+    paths: "/var/www/html/{{ domain }}"
+    recurse: yes
+  register: site_files
+- name: Set correct file permissions for matched files
+  become: yes
+  file:
+    path: "{{ item.path }}"
+    mode: '0644'
+  with_items: "{{ site_files.files }}"
+  when: site_files.matched > 0
+
+# Setup our server block for this domain
+- name: Setup Nginx server block for our site
+  become: yes
+  template:
+    src: ./config.j2
+    dest: "/etc/nginx/sites-available/{{ domain }}"
+- name: Enable the Nginx server block
+  become: yes
+  file:
+    src: "/etc/nginx/sites-available/{{ domain }}"
+    dest: "/etc/nginx/sites-enabled/{{ domain }}"
+    state: link
+
+# TODO: don't run this if we don't need to. also validate whether cron job is being 
+#  created for auto renewal
+# Setup ssl as needed
+- name: Create directory for SSL certificate
+  become: yes
+  file:
+    path: "/etc/nginx/ssl"
+    state: directory
+    mode: 0755
+- name: Generate self-signed SSL certificate
+  become: yes
+  command: openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=US/ST=Denial/L=Springfield/O=Dis/CN={{ domain }}" -keyout "{{ key_path }}" -out "{{ cert_path }}"
+  args:
+    creates: "{{ cert_path }}"
+
+- name: Generate Let's Encrypt certificate
+  become: yes
+  shell: certbot --nginx -d {{ domain }} --non-interactive --agree-tos -m {{ email }} --redirect
+  ignore_errors: true

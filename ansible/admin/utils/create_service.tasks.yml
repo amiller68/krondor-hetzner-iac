@@ -1,0 +1,92 @@
+# Setup a new service
+# - service_user: the service user
+# - service_group: the service group
+
+- name: Debug
+  debug:
+    msg: 
+     - "Create Service User"
+     - "{{ service_user }}"
+     - "{{ service_group }}"
+
+# Check if the admin user exists and is a sudoer
+- name: Check if the service user exists
+  become: yes
+  shell: "id {{ service_user }}"
+  register: user_check
+  ignore_errors: yes
+
+- name: Ensure the user is in the correct group
+  user:
+    name: "{{ service_user }}"
+    group: "{{ service_group }}"
+    state: present
+  when: user_check.rc == 0
+
+
+
+- name: Generate a random password
+  set_fact:
+    service_password: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters,digits') }}"
+  when: user_check.rc != 0
+- name: Create the service user
+  become: yes
+  user:
+    name: "{{ service_user }}"
+    password: "{{ service_password }}"
+    shell: /bin/bash
+    update_password: always
+    state: present
+  when: user_check.rc != 0
+# TODO: remove
+- name: Make sure the service user has a home directory
+  become: yes
+  file:
+    path: /home/{{ service_user }}
+    state: directory
+    owner: "{{ service_user }}"
+    group: "{{ service_user }}"
+  when: user_check.rc != 0
+- name: Save the service's password to a file on the instance
+  become: yes
+  copy:
+    content: "{{ service_password }}"
+    dest: /home/{{ service_user }}/{{ service_user }}.password
+    mode: '0600'
+    owner: "{{ service_user }}"
+    group: "{{ service_user }}"
+  when: user_check.rc != 0
+
+# TODO: implement safer ssh configuration
+- name: Get the admin user's ssh pub key
+  become: yes
+  shell: "cat /home/admin/.ssh/authorized_keys"
+  register: admin_ssh_pub_key
+  when: user_check.rc != 0
+- name: Make sure the service user has a .ssh directory
+  become: yes
+  file:
+    path: /home/{{ service_user }}/.ssh
+    state: directory
+    owner: "{{ service_user }}"
+    group: "{{ service_user }}"
+    mode: '0700'
+  when: user_check.rc != 0
+- name: Make sure the service user has an authorized_keys file
+  become: yes
+  file:
+    path: /home/{{ service_user }}/.ssh/authorized_keys
+    state: touch
+    owner: "{{ service_user }}"
+    group: "{{ service_user }}"
+    mode: '0600'
+  when: user_check.rc != 0
+- name: Add the admin's ssh pub key
+  become: yes
+  lineinfile:
+    path: /home/{{ service_user }}/.ssh/authorized_keys
+    line: "{{ admin_ssh_pub_key.stdout }}"
+    state: present
+    regexp: "^{{ admin_ssh_pub_key.stdout | regex_escape() }}"
+  ignore_errors: yes
+  when: user_check.rc != 0

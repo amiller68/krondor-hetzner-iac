@@ -8,6 +8,4 @@ ansible-playbook -i "$INVENTORY_PATH".admin \
   -u "admin" \
   -e "domain=cloud.krondor.org" \
   -e "email=al@krondor.org" \
-  -e "site_path=$(pwd)/scripts/admin/service/nginx/site" \
-  -e "config_path=$(pwd)/scripts/admin/service/nginx/config.j2" \
-  ./ansible/admin/service/nginx/start.yml
+  ./ansible/admin/init.yml

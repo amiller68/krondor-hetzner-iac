@@ -123,7 +123,7 @@ Hooray! As a passwordless sudoer, the `admin` user has the ability to enter a `r
 For example, we can install common dependencies as a sudoer and make them available to all users. Try running:
 
 ```sh
-$ ./scripts/admin/setup/dependencies.sh
+$ ./scripts/admin/dependencies.sh
 ```
 
 You should see the following in your terminal:

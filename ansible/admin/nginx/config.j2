@@ -7,8 +7,8 @@ server {
     ssl_certificate_key /etc/nginx/ssl/{{ domain }}.key;
 
     location / {
-        root /var/www/html;
-        index index.html index.htm;
+        root /var/www/html/{{ domain }}/static;
+        index index.html;
     }
 
     # Redirect HTTP to HTTPS

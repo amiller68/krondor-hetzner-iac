@@ -1,0 +1,15 @@
+# Initialize the host to properly run our services\
+# email: email to publish as admin
+# domain: domain to associate with our services
+- hosts: all
+  name: Init our services on the host
+  tasks:
+    - name: Initialize Nginx
+      import_tasks: ./nginx/init.tasks.yml
+      vars:
+        service_user: www-data
+        service_group: www-data
+        email: "{{ email }}"
+        domain: "{{ domain }}"
+        key_path: "/etc/nginx/ssl/{{ domain }}.key"
+        cert_path: "/etc/nginx/ssl/{{ domain }}.crt"

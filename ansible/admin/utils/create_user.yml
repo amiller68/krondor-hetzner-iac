@@ -1,0 +1,75 @@
+# Setup a new user
+# - user_name: the service user
+# - user_ssh_pub_key_path: path to the pub key to associate with this user on the control machine
+
+- hosts: all
+  name: Setup a Hetzner instance with a specified user
+  tasks:
+    # Check if the admin user exists and is a sudoer
+    - name: Check if the user exists
+      become: yes
+      shell: "id {{ user_name }}"
+      register: user_check
+      ignore_errors: yes
+
+    - name: Exit if the user exists
+      meta: end_play
+      when: user_check.rc != 0
+
+    - name: Generate a random password
+      set_fact:
+        password: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters,digits') }}"
+    - name: Create the user
+      become: yes
+      user:
+        name: "{{ name }}"
+        password: "{{ password }}"
+        shell: /bin/bash
+        update_password: always
+        state: present
+    - name: Save the service's password to a file on the instance
+      become: yes
+      copy:
+        content: "{{ password }}"
+        dest: /home/{{ name }}/{{ name }}.password
+        mode: '0600'
+        owner: "{{ name }}"
+        group: "{{ name }}"
+
+    # TODO: implement safer ssh configuration
+    - name: Get the admin user's ssh pub key
+      become: yes
+      shell: "cat /home/admin/.ssh/authorized_keys"
+      register: admin_ssh_pub_key
+    - name: Make sure the user has a .ssh directory
+      become: yes
+      file:
+        path: /home/{{ name }}/.ssh
+        state: directory
+        owner: "{{ name }}"
+        group: "{{ name }}"
+        mode: '0700'
+    - name: Make sure the user has an authorized_keys file
+      become: yes
+      file:
+        path: /home/{{ name }}/.ssh/authorized_keys
+        state: touch
+        owner: "{{ name }}"
+        group: "{{ name }}"
+        mode: '0600'
+    - name: Add the admin's ssh pub key
+      become: yes
+      lineinfile:
+        path: /home/{{ name }}/.ssh/authorized_keys
+        line: "{{ admin_ssh_pub_key.stdout }}"
+        state: present
+        regexp: "^{{ admin_ssh_pub_key.stdout | regex_escape() }}"
+      ignore_errors: yes
+    - name: Add the user's ssh pub key
+      become: yes
+      lineinfile:
+        path: /home/{{ user_name }}/.ssh/authorized_keys
+        line: "{{ user_ssh_pub_key }}"
+        state: present
+        regexp: "^{{ user_ssh_pub_key | regex_escape() }}"
+      when: user_ssh_pub_key is defined
