@@ -1,0 +1,79 @@
+- hosts: all
+  name: Setup a Hetzner instance with an nginx service
+  vars:
+    nginx_user: nginx  # Change to www-data if on Debian/Ubuntu
+    nginx_group: nginx  # Change to www-data if on Debian/Ubuntu
+  tasks:
+    - name: Remove default Nginx configuration
+      become: yes
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+
+    - name: Copy static site files
+      become: yes
+      copy:
+        src: "{{ site_path }}"
+        dest: "/var/www/html/{{ domain }}"
+        owner: "{{ nginx_user }}"
+        group: "{{ nginx_group }}"
+        mode: '0755'
+      notify: restart_nginx
+
+    - name: Ensure files have correct permissions
+      become: yes
+      find:
+        paths: "/var/www/html/{{ domain }}"
+        recurse: yes
+      register: site_files
+
+    - name: Set correct file permissions
+      become: yes
+      file:
+        path: "{{ item.path }}"
+        mode: '0644'
+      with_items: "{{ site_files.files }}"
+      when: site_files.matched > 0
+
+    - name: Setup Nginx server block for our site
+      become: yes
+      template:
+        src: "{{ config_path }}"
+        dest: "/etc/nginx/sites-available/{{ domain }}"
+      notify: restart_nginx
+
+    - name: Enable the Nginx server block
+      become: yes
+      file:
+        src: "/etc/nginx/sites-available/{{ domain }}"
+        dest: "/etc/nginx/sites-enabled/{{ domain }}"
+        state: link
+      notify: restart_nginx
+
+    - name: Create directory for SSL certificate
+      become: yes
+      file:
+        path: "/etc/nginx/ssl"
+        state: directory
+        mode: 0755
+      notify: restart_nginx
+
+    - name: Generate self-signed SSL certificate
+      become: yes
+      command: openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=US/ST=Denial/L=Springfield/O=Dis/CN={{ domain }}" -keyout "/etc/nginx/ssl/{{ domain }}.key" -out "/etc/nginx/ssl/{{ domain }}.crt"
+      args:
+        creates: "/etc/nginx/ssl/{{ domain }}.crt"
+      notify: restart_nginx
+
+    - name: Generate Let's Encrypt certificate
+      become: yes
+      shell: certbot --nginx -d {{ domain }} --non-interactive --agree-tos -m {{ email }} --redirect
+      ignore_errors: true
+      notify: restart_nginx
+
+  handlers:
+    - name: restart_nginx
+      become: yes
+      service:
+        name: nginx
+        state: restarted
