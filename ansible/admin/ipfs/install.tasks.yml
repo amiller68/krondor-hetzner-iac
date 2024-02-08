@@ -1,0 +1,44 @@
+- name: Install kubo on the service user's home directory
+  remote_user: ipfs
+  shell: "wget https://dist.ipfs.tech/kubo/v0.26.0/kubo_v0.26.0_linux-amd64.tar.gz"
+  args:
+    chdir: "/home/ipfs"
+
+- name: Extract kubo
+  remote_user: ipfs
+  shell: "tar -xzvf kubo_v0.26.0_linux-amd64.tar.gz && rm kubo_v0.26.0_linux-amd64.tar.gz"
+  args:
+    chdir: "/home/ipfs"
+
+- name: install kubo
+  become: yes
+  shell: "bash install.sh"
+  args:
+    chdir: "/home/ipfs/kubo"
+
+- name: Initialize kubo
+  remote_user: ipfs
+  shell: "ipfs init --profile server"
+  args:
+    chdir: "/home/ipfs"
+
+- name: Create a systemd service for ipfs
+  become: yes
+  copy:
+    src: ./ipfs.service
+    dest: /etc/systemd/system/ipfs.service
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Reload systemd
+  become: yes
+  systemd:
+    daemon_reload: yes
+
+- name: Enable the ipfs service
+  become: yes
+  systemd:
+    name: ipfs
+    enabled: yes
+    state: started

@@ -13,37 +13,22 @@
   register: user_check
   ignore_errors: yes
 
-- name: Generate a random password
-  set_fact:
-    service_password: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters,digits') }}"
-  when: user_check.rc != 0
 - name: Create the service user
   become: yes
   user:
     name: "{{ service_user }}"
-    password: "{{ service_password }}"
     shell: /bin/bash
-    update_password: always
     state: present
   when: user_check.rc != 0
-# TODO: remove
-- name: Make sure the service user has a home directory
-  become: yes
-  file:
-    path: /home/{{ service_user }}
-    state: directory
-    owner: "{{ service_user }}"
-    group: "{{ service_user }}"
-  when: user_check.rc != 0
-- name: Save the service's password to a file on the instance
-  become: yes
-  copy:
-    content: "{{ service_password }}"
-    dest: /home/{{ service_user }}/{{ service_user }}.password
-    mode: '0600'
-    owner: "{{ service_user }}"
-    group: "{{ service_user }}"
-  when: user_check.rc != 0
+# # TODO: remove
+# - name: Make sure the service user has a home directory
+#   become: yes
+#   file:
+#     path: /home/{{ service_user }}
+#     state: directory
+#     owner: "{{ service_user }}"
+#     group: "{{ service_user }}"
+#   when: user_check.rc != 0
 
 - name: Get the admin user's ssh pub key
   become: yes
