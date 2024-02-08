@@ -18,4 +18,4 @@ ansible-playbook -i "$INVENTORY_PATH".admin \
   -u "admin" \
   -e "user_name=$USER_NAME" \
   -e "user_ssh_pub_key_path=$USER_SSH_PUB_KEY_PATH" \
-  ./ansible/admin/user/create.yml
+  ./ansible/admin/utils/create_user.yml

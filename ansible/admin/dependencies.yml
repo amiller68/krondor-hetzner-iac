@@ -1,23 +1,26 @@
+# Install required system dependencies for runnning all services
 - hosts: all
   name: Install all dependencies on the host
   tasks:
-    # Install the dependencies - Doesn't check if they are already installed
-    # Update Yum
     - name: Update Apt
       become: yes
       apt:
         name: "*"
         state: latest
         force_apt_get: true
-    # Install Dependencies
     - name: Install Dependencies
       become: yes
       apt:
         name: "{{ item }}"
         state: present
         force_apt_get: true
-      # Packages you want available to all users
+      # TODO: can i scope these to specific groups?
+      # register packages you want available to all users here
       with_items:
         - gcc
         - git
         - aria2
+        - nginx
+        - certbot
+        - python3-certbot-nginx
+        - openssl

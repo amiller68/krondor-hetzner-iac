@@ -1,0 +1,6 @@
+# Ensure services are started
+- hosts: all
+  name: Start our services on the host
+  tasks:
+    - name: Start Nginx
+      import_tasks: ./nginx/start.tasks.yml
