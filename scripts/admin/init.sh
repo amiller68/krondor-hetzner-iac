@@ -6,6 +6,6 @@ source .env
 export ANSIBLE_HOST_KEY_CHECKING=False
 ansible-playbook -i "$INVENTORY_PATH".admin \
   -u "admin" \
-  -e "domain=cloud.krondor.org" \
-  -e "email=al@krondor.org" \
+  -e "domain=$DOMAIN" \
+  -e "email=$EMAIL" \
   ./ansible/admin/init.yml

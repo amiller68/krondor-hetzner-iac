@@ -8,15 +8,10 @@
   debug:
     msg:
      - "Init Nginx"
-     - "{{ service_user }}"
-     - "{{ service_group }}"
      - "{{ email }}"
      - "{{ domain }}"
      - "{{ key_path }}"
      - "{{ cert_path }}"
-
-- name: Create the service
-  import_tasks: ../utils/create_service.tasks.yml
 
 - name: Remove default Nginx configuration
   become: yes
@@ -25,17 +20,18 @@
     state: absent
 
 # Setup static files and associated permissions
+#  Be sure to make these files ownable by the default nginx user
 - name: Copy static site files
   become: yes
   copy:
     src: ./static
     dest: "/var/www/html/{{ domain }}"
-    owner: "{{ service_user }}"
-    group: "{{ service_group }}"
+    owner:  www-data
+    group: www-data
     mode: '0755'
 - name: Extract static files
   find:
-    paths: "/var/www/html/{{ domain }}"
+    paths: "/var/www/html/{{ domain }}/static"
     recurse: yes
   register: site_files
 - name: Set correct file permissions for matched files
@@ -59,6 +55,16 @@
     dest: "/etc/nginx/sites-enabled/{{ domain }}"
     state: link
 
+- name: Check if the cert path exists
+  stat: 
+    path: "{{ cert_path }}"
+  register: cert_file_stat
+
+- name: Check if the key path exists
+  stat: 
+    path: "{{ key_path }}"
+  register: key_file_stat
+
 # TODO: don't run this if we don't need to. also validate whether cron job is being 
 #  created for auto renewal
 # Setup ssl as needed
@@ -73,8 +79,10 @@
   command: openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=US/ST=Denial/L=Springfield/O=Dis/CN={{ domain }}" -keyout "{{ key_path }}" -out "{{ cert_path }}"
   args:
     creates: "{{ cert_path }}"
+  when: cert_file_stat.stat.exists == false or key_file_stat.stat.exists == false
 
 - name: Generate Let's Encrypt certificate
   become: yes
   shell: certbot --nginx -d {{ domain }} --non-interactive --agree-tos -m {{ email }} --redirect
   ignore_errors: true
+  when: cert_file_stat.stat.exists == false or key_file_stat.stat.exists == false

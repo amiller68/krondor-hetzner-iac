@@ -7,8 +7,6 @@
     - name: Initialize Nginx
       import_tasks: ./nginx/init.tasks.yml
       vars:
-        service_user: www-data
-        service_group: www-data
         email: "{{ email }}"
         domain: "{{ domain }}"
         key_path: "/etc/nginx/ssl/{{ domain }}.key"

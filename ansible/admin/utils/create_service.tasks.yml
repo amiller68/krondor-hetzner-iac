@@ -1,29 +1,17 @@
 # Setup a new service
 # - service_user: the service user
-# - service_group: the service group
 
 - name: Debug
   debug:
     msg: 
      - "Create Service User"
      - "{{ service_user }}"
-     - "{{ service_group }}"
 
-# Check if the admin user exists and is a sudoer
 - name: Check if the service user exists
   become: yes
   shell: "id {{ service_user }}"
   register: user_check
   ignore_errors: yes
-
-- name: Ensure the user is in the correct group
-  user:
-    name: "{{ service_user }}"
-    group: "{{ service_group }}"
-    state: present
-  when: user_check.rc == 0
-
-
 
 - name: Generate a random password
   set_fact:
@@ -57,16 +45,15 @@
     group: "{{ service_user }}"
   when: user_check.rc != 0
 
-# TODO: implement safer ssh configuration
 - name: Get the admin user's ssh pub key
   become: yes
-  shell: "cat /home/admin/.ssh/authorized_keys"
+  shell: "cat /etc/ssh/authorized/admin/authorized_keys"
   register: admin_ssh_pub_key
   when: user_check.rc != 0
 - name: Make sure the service user has a .ssh directory
   become: yes
   file:
-    path: /home/{{ service_user }}/.ssh
+    path: "/etc/ssh/authorized/{{ service_user }}/authorized"
     state: directory
     owner: "{{ service_user }}"
     group: "{{ service_user }}"
@@ -75,7 +62,7 @@
 - name: Make sure the service user has an authorized_keys file
   become: yes
   file:
-    path: /home/{{ service_user }}/.ssh/authorized_keys
+    path: "/etc/ssh/authorized/{{ service_user }}/authorized_keys"
     state: touch
     owner: "{{ service_user }}"
     group: "{{ service_user }}"
@@ -84,7 +71,7 @@
 - name: Add the admin's ssh pub key
   become: yes
   lineinfile:
-    path: /home/{{ service_user }}/.ssh/authorized_keys
+    path: "/etc/ssh/authorized/{{ service_user }}/authorized_keys"
     line: "{{ admin_ssh_pub_key.stdout }}"
     state: present
     regexp: "^{{ admin_ssh_pub_key.stdout | regex_escape() }}"

@@ -12,6 +12,5 @@ export ANSIBLE_HOST_KEY_CHECKING=False
 ansible-playbook -i "$INVENTORY_PATH" \
   -u "root" \
   --ask-pass \
-  -e "user_name=admin" \
-  -e "user_ssh_pub_key_path=$ADMIN_PUB_KEY_PATH" \
+  -e "admin_ssh_pub_key_path=$ADMIN_PUB_KEY_PATH" \
   ./ansible/admin/create.yml
