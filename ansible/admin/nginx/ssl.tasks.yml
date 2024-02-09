@@ -1,47 +1,18 @@
-# - name: Determine where to place the certificate
-#   set_fact:
-#     cert_path: "/etc/nginx/ssl/{{ domain }}.crt"
-#     key_path: "/etc/nginx/ssl/{{ domain }}.key"
-
 - name: Debug
   debug:
     msg:
-      - "Creating SSL Cert for {{ domain }}"
-      # - "Storing Cert at: {{ cert_path }}"
-      # - "Storing Key at: {{ key_path }}"
+      - "Creating SSL Cert for {{ target_domain }}"
       - "Admin Email: {{ email }}"
 
-# - name: Make sure the ssl directory exists
-#   become: yes
-#   file:
-#     path: "/etc/nginx/ssl"
-#     state: directory
-#     mode: 0755
-#     owner: www-data
-#     group: www-data
-
-# - name: Check if the cert path exists
-#   stat: 
-#     path: "{{ cert_path }}"
-#   register: cert_file_stat
-
-# - name: Check if the key path exists
-#   stat: 
-#     path: "{{ key_path }}"
-#   register: key_file_stat
-
-# - name: Determine if we need to generate a self-signed certificate
-#   set_fact:
-#     generate_self_signed_cert: "{{ cert_file_stat.stat.exists == false or key_file_stat.stat.exists == false }}"
-
-# - name: Generate self-signed SSL certificate
-#   become: yes
-#   command: openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=US/ST=Denial/L=Springfield/O=Dis/CN={{ domain }}" -keyout "{{ key_path }}" -out "{{ cert_path }}"
-#   args:
-#     creates: "{{ cert_path }}"
-#   when: generate_self_signed_cert
-
-# TODO: I'm not sure if this properly renews the certificate if it's expired or already exists
 - name: Generate Let's Encrypt certificate
   become: yes
-  shell: certbot --nginx -d {{ domain }} --non-interactive --agree-tos -m {{ email }}
+  shell: certbot --nginx -d {{ target_domain }} --non-interactive --agree-tos -m {{ email }}
+
+# 0 12 * * * /usr/bin/certbot renew --quiet
+- name: Add a cronn job to auto renew certificates if one doesn't already exist
+  become: yes
+  cron:
+    name: renew_certs
+    minute: 0
+    hour: 12
+    job: /user/bin/certbot renew --quiet
