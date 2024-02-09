@@ -26,6 +26,8 @@
     group: www-data
     mode: 0643
 
+# Setup root domain
+
 - name: Setup server block
   become: yes
   template:
@@ -42,8 +44,31 @@
 - name: Setup domain SSL certificate
   import_tasks: ./ssl.tasks.yml
   vars:
-    domain: "{{ domain }}"
+    target_domain: "{{ domain }}"
     email: "{{ email }}"
+
+# Setup ipfs sub domain
+
+- name: Setup server block
+  become: yes
+  template:
+    src: ./ipfs.config.j2
+    dest: "/etc/nginx/sites-available/ipfs.{{ domain }}"
+
+- name: Enable the server block
+  become: yes
+  file:
+    src: "/etc/nginx/sites-available/ipfs.{{ domain }}"
+    dest: "/etc/nginx/sites-enabled/ipfs.{{ domain }}"
+    state: link
+
+- name: Setup domain SSL certificate
+  import_tasks: ./ssl.tasks.yml
+  vars:
+    target_domain: "ipfs.{{ domain }}"
+    email: "{{ email }}"
+
+
 
 - name: Restart Nginx
   become: yes
