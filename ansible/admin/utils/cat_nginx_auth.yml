@@ -1,0 +1,18 @@
+# List the valid basic auth users for our nginx server
+
+# TODO: this is based off the janky password generation + saving method I came up with.
+#  It is not permanent, or desirable. I need to find a better way to manage secrets.
+- hosts: all
+  name: List the valid basic auth users for our nginx server
+  tasks:
+    # Get the contents of /home/ipfs/.basic_auth.password
+    - name: Get the contents of /home/ipfs/.basic_auth.password
+      become: yes
+      shell: "cat  /home/ipfs/.basic_auth.password"
+      register: ipfs_basic_auth_password
+      ignore_errors: yes
+    
+    - name: Debug
+      debug:
+        msg: 
+          - "ipfs:{{ ipfs_basic_auth_password.stdout }}"
