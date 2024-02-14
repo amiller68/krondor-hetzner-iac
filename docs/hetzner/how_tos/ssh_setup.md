@@ -94,7 +94,7 @@ This will create a new ECDSA SSH public-private key pair on your local machine a
 3. Creat the admin user. Run:
 
 ```sh
-$ ./scripts/admin/create.sh
+$ ./scripts/admin/init.sh
 ```
 
 You'll be prompted for a password. You should use the `PASSWORD` value from before. You will never need this again after this playbook exits successfuly. You should see the following in your terminal:

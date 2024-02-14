@@ -28,4 +28,4 @@
   systemd:
     name: ipfs
     enabled: yes
-    state: started
+    state: restarted

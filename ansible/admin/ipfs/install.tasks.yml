@@ -22,6 +22,12 @@
   args:
     chdir: "/home/ipfs"
 
+- name: Configure our gateway to only serve pinned content
+  remote_user: ipfs
+  shell: "ipfs config --json Gateway.NoFetch true"
+  args:
+    chdir: "/home/ipfs"
+
 - name: Create a systemd service for ipfs
   become: yes
   copy:

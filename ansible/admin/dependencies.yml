@@ -24,3 +24,4 @@
         - certbot
         - python3-certbot-nginx
         - openssl
+        - apache2-utils

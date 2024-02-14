@@ -47,7 +47,19 @@
     target_domain: "{{ domain }}"
     email: "{{ email }}"
 
-# Setup ipfs sub domain
+# Setup ipfs sub domain. Setup a basic auth for the ipfs api.
+
+- name: Check if the /etc/nginx/.htpasswd_ipfs file exists
+  become: yes
+  stat:
+    path: /etc/nginx/.htpasswd_ipfs
+  register: htpasswd_ipfs_stat
+
+- name: Setup a basic auth file for the ipfs subdomain
+  import_tasks: ./basic_auth.tasks.yml
+  vars:
+    basic_auth_user: ipfs
+  when: htpasswd_ipfs_stat.stat.exists == False
 
 - name: Setup server block
   become: yes
@@ -67,8 +79,6 @@
   vars:
     target_domain: "ipfs.{{ domain }}"
     email: "{{ email }}"
-
-
 
 - name: Restart Nginx
   become: yes

@@ -52,13 +52,19 @@
         proto: tcp
         port: '80'
 
+    - name: Allow Inbound Https
+      ufw:
+        rule: allow
+        direction: in
+        proto: tcp
+        port: '443'
+
     - name: Allow Inbound Established Tcp
       ufw:
         rule: allow
         direction: in
         proto: tcp
         port: '32768:65535'
-
 
     # OUTBOUND
 
@@ -75,3 +81,8 @@
         rule: allow
         proto: tcp
         port: '4001'
+
+    # Enable the firewall
+    - name: Enable the firewall
+      ufw:
+        state: enabled
