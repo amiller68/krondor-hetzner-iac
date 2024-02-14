@@ -1,7 +1,7 @@
 # Hetzner Dedicated Server: Static Nginx Site
 
 This walkthrough describes how to initially set up a Hetzner server to act as a static web server. We'll also setup HTTPS while we're at it.
-At the end you should have a "secure" static site that you can point to with a domain you manage. This is meant as a template tool with which to build more complex services, but right off the bat you can start getting a handle on LetsEncrypt, OpenSSL, and NginX.
+At the end you should have a "secure" static site that you can point to with a domain you manage. This is meant as a template tool with which to build more complex services, but right off the bat you can start getting a handle on LetsEncrypt and NginX.
 
 This rest of this walkthrough assumes:
 - you completed the setup described in [the first walkthrough](./ssh_setup.md)
@@ -31,7 +31,7 @@ This should allow connecting to the server over HTTP and HTTPS, and allow the se
 
 You'll need a domain to point to your web sever. In order to do so you'll need to create an A record for the (sub) domain you want to point at your webservice, and set the value to the public IP address of your server. 
 
-Once you've done this you can validate whether or not DNS is working by calling `dig` from the command line. For example, my IP address is `65.108.195.167` and my domain is `cloud.krondor.org`. My response contains the following:
+Once you've done this you can validate whether or not DNS is working by calling `dig` from the command line. For example, my server's IP address is `65.108.195.167` and my domain is `cloud.krondor.org`. My response contains the following:
 
 ```shell
 al@al-XPS-13-9310:~/krondor-hetzner-iac$ dig cloud.krondor.org
@@ -76,104 +76,85 @@ The following script should handle initializing Nginx with a basic config, stati
 If you run:
 
 ```shell
-$ ./scripts/admin/init.sh 
+$ ./scripts/admin/nginx.sh 
 ```
 
-This should handle starting all of the services that our host is responsible for. At the moment this is just nginx.
+This should handle properly configuring Nginx, creating an SSL certifcate for our domain, and starting our web server. Take a look at some of the tasks called from the [relevant playbook](../../../ansible/admin/nginx/tasks.yml):
+
+```
+...
+
+# Copy our static web server to the host within our Nginx configuration and enable the site
+- name: Copy static site files assets
+  become: yes
+  template:
+    src: ./static/index.html.j2
+    dest: "/var/www/html/{{ domain }}/index.html"
+    owner:  www-data
+    group: www-data
+    mode: 0643
+- name: Setup server block
+  become: yes
+  template:
+    src: ./config.j2
+    dest: "/etc/nginx/sites-available/{{ domain }}"
+- name: Enable the server block
+  become: yes
+  file:
+    src: "/etc/nginx/sites-available/{{ domain }}"
+    dest: "/etc/nginx/sites-enabled/{{ domain }}"
+    state: link
+
+# This uses Let's Encrypt in order to set up a valid SSL certifcate for our domain, which is pointing to our host
+#  We reference this certifcate in our site configuration so that our host can serve HTTPS requests over our domain
+- name: Setup domain SSL certificate
+  import_tasks: ./ssl.tasks.yml
+  vars:
+    target_domain: "{{ domain }}"
+    email: "{{ email }}"
+```
+
 You should see something like the following in your console:
 
 ```shell
-PLAY [Init our services on the host] ***************************************************************************************************************************************************
+PLAY [Init our services on the host] **************************************************************************
 
-TASK [Gathering Facts] *****************************************************************************************************************************************************************
+TASK [Gathering Facts] ****************************************************************************************
 ok: [65.108.195.167]
 
-TASK [Debug] ***************************************************************************************************************************************************************************
+TASK [Debug] **************************************************************************************************
 ok: [65.108.195.167] => {
     "msg": [
-        "Init Nginx",
-        "www-data",
-        "www-data",
+        "Init Nginx Configuration",
         "al@krondor.org",
-        "cloud.krondor.org",
-        "/etc/nginx/ssl/cloud.krondor.org.key",
-        "/etc/nginx/ssl/cloud.krondor.org.crt"
+        "cloud.krondor.org"
     ]
 }
 
-TASK [Debug] ***************************************************************************************************************************************************************************
+TASK [Remove default Nginx configuration] *********************************************************************
+ok: [65.108.195.167]
+
+TASK [Copy static site files assets] **************************************************************************
+ok: [65.108.195.167]
+
+TASK [Setup server block] *************************************************************************************
+ok: [65.108.195.167]
+
+TASK [Enable the server block] ********************************************************************************
+ok: [65.108.195.167]
+
+TASK [Debug] **************************************************************************************************
 ok: [65.108.195.167] => {
     "msg": [
-        "Create Service User",
-        "www-data",
-        "www-data"
+        "Creating SSL Cert for cloud.krondor.org",
+        "Admin Email: al@krondor.org"
     ]
 }
 
-TASK [Check if the service user exists] ************************************************************************************************************************************************
-changed: [65.108.195.167]
-
-TASK [Ensure the user is in the correct group] *****************************************************************************************************************************************
+TASK [Check if the SSL certificate already exists] ************************************************************
 ok: [65.108.195.167]
 
-TASK [Generate a random password] ******************************************************************************************************************************************************
-skipping: [65.108.195.167]
-
-TASK [Create the service user] *********************************************************************************************************************************************************
-skipping: [65.108.195.167]
-
-TASK [Make sure the service user has a home directory] *********************************************************************************************************************************
-skipping: [65.108.195.167]
-
-TASK [Save the service's password to a file on the instance] ***************************************************************************************************************************
-skipping: [65.108.195.167]
-
-TASK [Get the admin user's ssh pub key] ************************************************************************************************************************************************
-skipping: [65.108.195.167]
-
-TASK [Make sure the service user has a .ssh directory] *********************************************************************************************************************************
-skipping: [65.108.195.167]
-
-TASK [Make sure the service user has an authorized_keys file] **************************************************************************************************************************
-skipping: [65.108.195.167]
-
-TASK [Add the admin's ssh pub key] *****************************************************************************************************************************************************
-skipping: [65.108.195.167]
-
-TASK [Remove default Nginx configuration] **********************************************************************************************************************************************
-ok: [65.108.195.167]
-
-TASK [Copy static site files] **********************************************************************************************************************************************************
-changed: [65.108.195.167]
-
-TASK [Extract static files] ************************************************************************************************************************************************************
-ok: [65.108.195.167]
-
-TASK [Set correct file permissions for matched files] **********************************************************************************************************************************
-changed: [65.108.195.167] => (item={'path': '/var/www/html/cloud.krondor.org/static/index.html', 'mode': '0755', 'isdir': False, 'ischr': False, 'isblk': False, 'isreg': True, 'isfifo': False, 'islnk': False, 'issock': False, 'uid': 33, 'gid': 33, 'size': 242, 'inode': 25428033, 'dev': 2306, 'nlink': 1, 'atime': 1707342669.8929963, 'mtime': 1707342662.2691817, 'ctime': 1707342669.8929963, 'gr_name': 'www-data', 'pw_name': 'www-data', 'wusr': True, 'rusr': True, 'xusr': True, 'wgrp': False, 'rgrp': True, 'xgrp': True, 'woth': False, 'roth': True, 'xoth': True, 'isuid': False, 'isgid': False})
-ok: [65.108.195.167] => (item={'path': '/var/www/html/cloud.krondor.org/site/index.html', 'mode': '0644', 'isdir': False, 'ischr': False, 'isblk': False, 'isreg': True, 'isfifo': False, 'islnk': False, 'issock': False, 'uid': 1002, 'gid': 1002, 'size': 206, 'inode': 25428007, 'dev': 2306, 'nlink': 1, 'atime': 1707204881.6245809, 'mtime': 1707202642.7826905, 'ctime': 1707204893.8882842, 'gr_name': 'nginx', 'pw_name': 'nginx', 'wusr': True, 'rusr': True, 'xusr': False, 'wgrp': False, 'rgrp': True, 'xgrp': False, 'woth': False, 'roth': True, 'xoth': False, 'isuid': False, 'isgid': False})
-
-TASK [Setup Nginx server block for our site] *******************************************************************************************************************************************
-changed: [65.108.195.167]
-
-TASK [Enable the Nginx server block] ***************************************************************************************************************************************************
-ok: [65.108.195.167]
-
-TASK [Create directory for SSL certificate] ********************************************************************************************************************************************
-ok: [65.108.195.167]
-
-TASK [Generate self-signed SSL certificate] ********************************************************************************************************************************************
-ok: [65.108.195.167]
-
-TASK [Generate Let's Encrypt certificate] **********************************************************************************************************************************************
-changed: [65.108.195.167]
-
-PLAY RECAP *****************************************************************************************************************************************************************************
-65.108.195.167             : ok=14   changed=5    unreachable=0    failed=0    skipped=8    rescued=0    ignored=0  
-``` 
-
-Great! Nginx is properly configured to serve static content from our domain over HTTPS! If you would like to learn more about how this works, I suggest looking at the relevant ansible playbook, `./ansible/admin/nginx/init.tasks.yml`.
-
+TASK [Generate Let's Encrypt certificate] ********************************************************
 ## Starting Nginx
 
 We're now ready to start up our services. Run:
@@ -194,8 +175,22 @@ TASK [restart_nginx] ***********************************************************
 changed: [65.108.195.167]
 
 PLAY RECAP *****************************************************************************************************************************************************************************
-65.108.195.167             : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0 
-```
+65.108.195.167             : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0 *************
+skipping: [65.108.195.167]
+
+TASK [Add a cronn job to auto renew certificates if one doesn't already exist] ********************************
+skipping: [65.108.195.167]
+
+...
+
+TASK [Restart Nginx] ******************************************************************************************
+changed: [65.108.195.167]
+
+PLAY RECAP ****************************************************************************************************
+65.108.195.167             : ok=14   changed=2    unreachable=0    failed=0    skipped=9    rescued=0    ignored=0
+``` 
+
+Great! Nginx is properly configured to serve static content from our domain over HTTPS!
 
 ## Wrap Up
 

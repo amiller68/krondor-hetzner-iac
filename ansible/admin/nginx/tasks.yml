@@ -80,8 +80,6 @@
     target_domain: "ipfs.{{ domain }}"
     email: "{{ email }}"
 
-
-
 - name: Restart Nginx
   become: yes
   service:

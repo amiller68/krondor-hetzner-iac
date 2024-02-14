@@ -8,11 +8,29 @@ This repository is  primarily is concerned with adminstering provisioned servers
 
 If you want E2E automation of provisioning this repository is not (yet) for you, but Hetnzer Cloud does offer on-demand computer and building blocks like floating IPs, load balancers, and networks. I've decided that all of that is probably over kill for my services but I do want to eventually write boilerplate for provisioning containerized services on Hetzner. 
 
-Scripts assume Ubuntu 22.04 LTS environment at the moment, that's just my go to.
+Scripts assume Ubuntu 22.04 LTS environment.
 
 ## Dependencies
 - Python
 - Ansible
 
+## What actually does this implement?
+In order of complexity, this repository includes documentation and scripts for:
+- setting up a dedicated server on Hetzner with an administrator
+- securing and administering the server
+- creating and managing users and services
+- load balancer implementation for serving services over HTTPS
 
-See `./docs` for more documentation, walkthroughs, and notes.
+See `./docs` for full walkthroughs and notes
+
+## Disclaimer
+
+Please be aware of the following:
+
+- This codebase is continually evolving, and features may be added, modified, or removed at any time without notice.
+- It may contain bugs, errors, or vulnerabilities that could compromise the security or stability of your systems.
+- Use of the scripts and playbooks provided here is at your own risk, and the author assumes no liability for any damages or issues arising from their use.
+- It is recommended to thoroughly review and test any scripts or configurations before deploying them in a production environment.
+- Security practices and configurations may not be comprehensive or suitable for all use cases. It is essential to conduct your own security assessments and implement additional measures as needed.
+
+By using this repository, you acknowledge and accept the risks associated with its use and agree to use it responsibly and at your own discretion. Contributions, feedback, and improvements are welcome but should be made with caution and consideration for the aforementioned factors.
