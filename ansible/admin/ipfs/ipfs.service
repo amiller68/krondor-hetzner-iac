@@ -2,6 +2,7 @@
 Description=IPFS Daemon
 After=network.target
 
+# TODO: don't allow serving blocks not pinned locally
 [Service]
 User=ipfs
 Environment=IPFS_PATH=/home/ipfs/.ipfs

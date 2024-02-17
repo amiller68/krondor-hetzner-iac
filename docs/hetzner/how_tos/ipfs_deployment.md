@@ -97,6 +97,12 @@ This should handle properly configuring UFW on your server. Take a look at some 
     rule: allow
     proto: tcp
     port: '4001'
+
+- name: Allow Tcp over port 5001
+  ufw:
+    rule: allow
+    proto: tcp
+    port: '5001'
 ```
 
 This properly translates our previous WebServer template configuration into a UFW configuration. It also adds a rule to allow our IPFS node to communicate to other peers over TCP through port 4001. You should see something like the following in your console when you run the script:
@@ -207,7 +213,11 @@ skipping: [65.108.195.167]
 TASK [Configure our gateway to only serve pinned content] **************************************
 skipping: [65.108.195.167]
 
+TASK [Configure our API to bind on port 5001] **************************************
+
+skipping: [65.108.195.167]
 TASK [Create a systemd service for ipfs] *******************************************************
+
 skipping: [65.108.195.167]
 
 TASK [Reload systemd] **************************************************************************
@@ -331,16 +341,24 @@ server {
         proxy_set_header Host $host;
         proxy_cache_bypass $http_upgrade;
     }
+}
+
+server {
+    listen 5001 ssl http2;
+    server_name ipfs.{{ domain }};
+
+    ssl_certificate /etc/letsencrypt/live/ipfs.{{ domain }}/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/ipfs.{{ domain }}/privkey.pem; # managed by Certbot
 
     # Direct all API requests to the API
-    location /api {
+    location / {
         limit_req zone=ipfs_api burst=20 nodelay;
 
         auth_basic "Restricted";
         auth_basic_user_file /etc/nginx/.htpasswd_ipfs;
 
-        # Note: the prefix is important here
-        proxy_pass http://localhost:5001/api;
+        # Ipfs API should be bound to port 5000
+        proxy_pass http://localhost:5000;
         proxy_set_header Host $host;
         proxy_cache_bypass $http_upgrade;
     }
@@ -354,7 +372,7 @@ server {
 
 Essentially:
 - we set up SSL much like we did for our WebServer's root domain
-- we set up a new server block to proxy requests to our IPFS node's gateway and API. This server block has a few new features:
+- we set up a new server blocks to proxy requests to our IPFS node's gateway and API (which we bound to port 5000). The API server block has a few new features:
   - it implements a reverse proxy to our IPFS node's gateway and API
   - it sets up a rate limit for our IPFS node's API to prevent abuse
   - it sets up basic authentication for our IPFS node's API

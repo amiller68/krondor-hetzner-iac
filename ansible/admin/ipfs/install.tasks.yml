@@ -28,6 +28,12 @@
   args:
     chdir: "/home/ipfs"
 
+- name: Configure our API to listen on port 5000
+  remote_user: ipfs
+  shell: "ipfs config Addresses.API /ip4/127.0.0.1/tcp/5000"
+  args:
+    chdir: "/home/ipfs"
+
 - name: Create a systemd service for ipfs
   become: yes
   copy:

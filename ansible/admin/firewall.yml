@@ -81,6 +81,12 @@
         rule: allow
         proto: tcp
         port: '4001'
+        
+    - name: Allow tcp over port 5001
+      ufw:
+        rule: allow
+        proto: tcp
+        port: '5001'
 
     # Enable the firewall
     - name: Enable the firewall
