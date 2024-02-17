@@ -481,7 +481,7 @@ Success! Let's see if we can add some content to our node using the API:
 
 ```shell
 $ echo hello > test
-$ curl -X POST -F "file=@test" https://ipfs.krondor.org/api/v0/add
+$ curl -X POST -F "file=@test" https://ipfs.krondor.org:5001/api/v0/add
 <html>
 <head><title>401 Authorization Required</title></head>
 <body>
@@ -524,7 +524,7 @@ Note: this secret management is a bit of a pain, and not overly secure. It would
 However, now that we have our credentials, we can try adding content to our node again. Try running the following:
 
 ```shell
-$ curl -X POST -F "file=@test" https://ipfs.krondor.org/api/v0/add -u ipfs:dont-worry-this-is-a-fake-password-your-password-will-be-different
+$ curl -X POST -F "file=@test" https://ipfs.krondor.org:5001/api/v0/add -u ipfs:dont-worry-this-is-a-fake-password-your-password-will-be-different
 {"Name":"test","Hash":"QmZULkCELmmk5XNfCgTnCyFgAVxBRBXyDHGGMVoLFLiXEN","Size":"14"}```
 ```
 
