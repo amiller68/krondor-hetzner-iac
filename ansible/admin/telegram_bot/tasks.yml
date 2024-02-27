@@ -1,0 +1,30 @@
+# Start Telegram Bot on the host
+
+- name: Check if the telegram_bot user exists
+  become: yes
+  shell: "id telegram_bot"
+  register: telegram_bot_user_check
+  ignore_errors: yes
+
+- name: Create the telegram_bot service user
+  import_tasks: ../utils/create_service.tasks.yml
+  vars:
+    service_user: telegram_bot
+  when: telegram_bot_user_check.rc != 0
+
+- name: Check if the /home/telegram_bot/krondor-bot directory exists
+  become: yes
+  stat: 
+    path: /home/telegram_bot/krondor-bot
+  register: krondor_bot_dir_stat
+
+- name: Install the telegram bot
+  import_tasks: ./install.tasks.yml
+  when: krondor_bot_dir_stat.stat.exists == False
+
+- name: Start the telegram bot service
+  become: yes
+  systemd:
+    name: telegram_bot
+    enabled: yes
+    state: restarted

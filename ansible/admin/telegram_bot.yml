@@ -1,0 +1,5 @@
+- hosts: all
+  name: Run Telegram Bot
+  tasks:
+    - name: Start the telegram bot service
+      import_tasks: ./telegram_bot/tasks.yml

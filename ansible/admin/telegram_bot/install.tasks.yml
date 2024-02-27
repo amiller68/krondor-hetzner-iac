@@ -1,0 +1,41 @@
+- name: Clone the krondor-bot repository
+  remote_user: telegram_bot
+  shell: "git clone https://github.com/amiller68/krondor-bot"
+  args:
+    chdir: "/home/telegram_bot"
+
+- name: install the telegram bot dependencies
+  remote_user: telegram_bot
+  shell: "./scripts/install.sh"
+  args:
+    chdir: "/home/telegram_bot/krondor-bot"
+
+- name: Copy the TG Token to the bot's directory with User Input
+  remote_user: telegram_bot
+  copy:
+    content: "export TG_TOKEN={{ tg_token }}"
+    dest: "/home/telegram_bot/krondor-bot/.env"
+    owner: telegram_bot
+    group: telegram_bot
+    mode: '0600'
+
+- name: Create a systemd service for telegram_bot
+  become: yes
+  copy:
+    src: ./telegram_bot.service
+    dest: /etc/systemd/system/telegram_bot.service
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Reload systemd
+  become: yes
+  systemd:
+    daemon_reload: yes
+
+- name: Enable the telegram_bot service
+  become: yes
+  systemd:
+    name: telegram_bot
+    enabled: yes
+    state: started

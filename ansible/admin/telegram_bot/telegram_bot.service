@@ -1,0 +1,14 @@
+[Unit]
+Description=Telegram Bot
+After=network.target
+
+[Service]
+User=telegram_bot
+WorkingDirectory=/home/telegram_bot/krondor-bot
+Environment="DEBUG=false"
+ExecStart=/bin/bash ./scripts/run.sh
+Restart=on-failure
+KillSignal=SIGINT
+
+[Install]
+WantedBy=multi-user.target
