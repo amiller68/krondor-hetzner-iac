@@ -7,8 +7,9 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/{{ domain }}/privkey.pem; # managed by Certbot
 
     location / {
-        root /var/www/html/{{ domain }};
+        root /var/www/html/{{ domain }}/site;
         index index.html;
+        try_files $uri $uri/ /index.html;
     }
     
     # Redirect HTTP to HTTPS
