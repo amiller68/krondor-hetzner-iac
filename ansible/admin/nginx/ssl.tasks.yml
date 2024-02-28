@@ -10,6 +10,23 @@
     path: "/etc/letsencrypt/live/{{ target_domain }}/fullchain.pem"
   register: ssl_cert_stat
 
+- name: Create the dir for our domain if it doesn't exist
+  become: yes
+  file:
+    path: "/etc/letsencrypt/live/{{ target_domain }}"
+    state: directory
+  when: ssl_cert_stat.stat.exists == False
+
+- name: Set our key and cert paths
+  set_fact:
+    key_path: "/etc/letsencrypt/live/{{ target_domain }}/privkey.pem"
+    cert_path: "/etc/letsencrypt/live/{{ target_domain }}/fullchain.pem"
+
+- name: Create our Key and Cert
+  become: yes
+  shell: openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout {{ key_path }} -out {{ cert_path }} -subj "/C=US/ST=Denial/L=Springfield/O=Dis/CN={{ target_domain }}"
+  when: ssl_cert_stat.stat.exists == False
+
 - name: Generate Let's Encrypt certificate
   become: yes
   shell: certbot --nginx -d {{ target_domain }} --non-interactive --agree-tos -m {{ email }}

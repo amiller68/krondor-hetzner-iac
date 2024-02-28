@@ -389,7 +389,7 @@ ok: [65.108.195.167] => {
     "msg": [
         "Init Nginx Configuration",
         "al@krondor.org",
-        "cloud.krondor.org"
+        "krondor.org"
     ]
 }
 
@@ -408,7 +408,7 @@ ok: [65.108.195.167]
 TASK [Debug] ***********************************************************************************
 ok: [65.108.195.167] => {
     "msg": [
-        "Creating SSL Cert for cloud.krondor.org",
+        "Creating SSL Cert for krondor.org",
         "Admin Email: al@krondor.org"
     ]
 }
@@ -449,7 +449,7 @@ ok: [65.108.195.167]
 TASK [Debug] ***********************************************************************************
 ok: [65.108.195.167] => {
     "msg": [
-        "Creating SSL Cert for ipfs.cloud.krondor.org",
+        "Creating SSL Cert for ipfs.krondor.org",
         "Admin Email: al@krondor.org"
     ]
 }

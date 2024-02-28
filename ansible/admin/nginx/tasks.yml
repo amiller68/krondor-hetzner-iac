@@ -17,11 +17,13 @@
     path: /etc/nginx/sites-enabled/default
     state: absent
 
+# TODO: I might need to properly ensure that this directory exists
+#  For the time being, I know it exists on my current host
 - name: Copy static site files assets
   become: yes
-  template:
-    src: ./static/index.html.j2
-    dest: "/var/www/html/{{ domain }}/index.html"
+  copy:
+    src: ./static/site
+    dest: "/var/www/html/{{ domain }}"
     owner:  www-data
     group: www-data
     mode: 0643

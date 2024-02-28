@@ -31,12 +31,12 @@ This should allow connecting to the server over HTTP and HTTPS, and allow the se
 
 You'll need a domain to point to your web sever. In order to do so you'll need to create an A record for the (sub) domain you want to point at your webservice, and set the value to the public IP address of your server. 
 
-Once you've done this you can validate whether or not DNS is working by calling `dig` from the command line. For example, my server's IP address is `65.108.195.167` and my domain is `cloud.krondor.org`. My response contains the following:
+Once you've done this you can validate whether or not DNS is working by calling `dig` from the command line. For example, my server's IP address is `65.108.195.167` and my domain is `krondor.org`. My response contains the following:
 
 ```shell
-al@al-XPS-13-9310:~/krondor-hetzner-iac$ dig cloud.krondor.org
+al@al-XPS-13-9310:~/krondor-hetzner-iac$ dig krondor.org
 
-; <<>> DiG 9.16.1-Ubuntu <<>> cloud.krondor.org
+; <<>> DiG 9.16.1-Ubuntu <<>> krondor.org
 ;; global options: +cmd
 ;; Got answer:
 ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 49570
@@ -45,10 +45,10 @@ al@al-XPS-13-9310:~/krondor-hetzner-iac$ dig cloud.krondor.org
 ;; OPT PSEUDOSECTION:
 ; EDNS: version: 0, flags:; udp: 65494
 ;; QUESTION SECTION:
-;cloud.krondor.org.		IN	A
+;krondor.org.		IN	A
 
 ;; ANSWER SECTION:
-cloud.krondor.org.	300	IN	A	65.108.195.167
+krondor.org.	300	IN	A	65.108.195.167
 
 ;; Query time: 283 msec
 ;; SERVER: 127.0.0.53#53(127.0.0.53)
@@ -65,7 +65,7 @@ The next couple steps are easy. First you'll need to configure your `.env` file 
 ```
 ...
 # What domain to use for exposing up web services. This one is mine
-export DOMAIN=cloud.krondor.org
+export DOMAIN=krondor.org
 # What email to use for publishing on web service certs. This one is mine
 export EMAIL=al@krondor.org
 ```
@@ -127,7 +127,7 @@ ok: [65.108.195.167] => {
     "msg": [
         "Init Nginx Configuration",
         "al@krondor.org",
-        "cloud.krondor.org"
+        "krondor.org"
     ]
 }
 
@@ -146,7 +146,7 @@ ok: [65.108.195.167]
 TASK [Debug] **************************************************************************************************
 ok: [65.108.195.167] => {
     "msg": [
-        "Creating SSL Cert for cloud.krondor.org",
+        "Creating SSL Cert for krondor.org",
         "Admin Email: al@krondor.org"
     ]
 }
