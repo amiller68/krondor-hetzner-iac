@@ -1,0 +1,11 @@
+# Setup our terminal of choice (kitty) and its configuration
+- name: Setup terminal
+  hosts: localhost
+  connection: local
+  gather_facts: yes
+  tasks:
+    - name: Setup kitty terminal
+      import_tasks: ./kitty.yml
+
+    - name: Setup lazyvim
+      import_tasks: ./lazyvim.yml

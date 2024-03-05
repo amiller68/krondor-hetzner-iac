@@ -1,0 +1,53 @@
+# NOTE: only works for first time setup, not for updates
+# TODO: break up into different task lists to get better control over the process
+
+# Install
+- name: Check if kitty is installed
+  shell: "kitty --version"
+  register: kitty_check
+  ignore_errors: yes
+
+- name: Install kitty terminal
+  shell: "curl -L https://sw.kovidgoyal.net/kitty/installer.sh | sh /dev/stdin"
+  when: kitty_check.rc != 0
+
+# Note: assumes that we're configuring a desktop environment
+# Desktop Integration
+- name: Create symlink to kitty and add kitten to path
+  shell: "ln -s ~/.local/kitty.app/bin/kitty ~/.local/bin/"
+  when: kitty_check.rc != 0
+
+- name: Place the kitty.desktop file somewhere it can be found by the OS
+  shell: "cp ~/.local/kitty.app/share/applications/kitty.desktop ~/.local/share/applications/"
+  when: kitty_check.rc != 0
+
+- name: Enable kitty to open text files and images via file manager
+  shell: "cp ~/.local/kitty.app/share/applications/kitty-open.desktop ~/.local/share/applications/"
+  when: kitty_check.rc != 0
+
+- name: Update the paths to the kitty and its icon in the kitty.desktop file(s)
+  shell: "sed -i 's|Icon=kitty|Icon=/home/$USER/.local/kitty.app/share/icons/hicolor/256x256/apps/kitty.png|g' ~/.local/share/applications/kitty*.desktop"
+  when: kitty_check.rc != 0
+
+- name: Update the paths to the kitty and its icon in the kitty.desktop file(s)
+  shell: "sed -i 's|Exec=kitty|Exec=/home/$USER/.local/kitty.app/bin/kitty|g' ~/.local/share/applications/kitty*.desktop"
+  when: kitty_check.rc != 0
+
+- name: Update the paths to the kitty and its icon in the kitty.desktop file(s)
+  shell: "sed -i 's|Icon=kitty|Icon=/home/$USER/.local/kitty.app/share/icons/hicolor/256x256/apps/kitty.png|g' ~/.local/share/applications/kitty*.desktop"
+  when: kitty_check.rc != 0
+
+# Configuration
+- name: Back up the current kitty config
+  shell: "mv ~/.config/kitty ~/.config/kitty.bak"
+  when: kitty_check.rc != 0
+
+# TODO: Don't just downstream other people's config files, evaluate and make my own
+# Clone the kitty config
+- name: Clone the kitty config
+  shell: "git clone https://github.com/ttys3/my-kitty-config.git ~/.config/kitty"
+  when: kitty_check.rc != 0
+
+- name: Rm the .git directory
+  shell: "rm -rf ~/.config/kitty/.git"
+  when: kitty_check.rc != 0

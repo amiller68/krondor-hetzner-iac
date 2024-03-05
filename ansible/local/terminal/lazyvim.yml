@@ -1,0 +1,32 @@
+# TODO: Make this replayable without overwriting changes
+# - name: Backup Neovim config
+#   shell: "mv ~/.config/nvim{,.bak}"
+#   ignore_errors: yes
+
+# - name: Backup Share
+#   shell: "mv ~/.local/share/nvim{,.bak}"
+#   ignore_errors: yes
+
+# - name: Backup State
+#   shell: "mv ~/.local/state/nvim{,.bak}"
+#   ignore_errors: yes
+
+# - name: Backup Cache
+#   shell: "mv ~/.cache/nvim{,.bak}"
+#   ignore_errors: yes
+
+- name: Clone LazyVim
+  shell: "git clone https://github.com/LazyVim/starter ~/.config/nvim"
+  ignore_errors: yes
+
+- name: Rm the .git directory
+  shell: "rm -rf ~/.config/nvim/.git"
+  ignore_errors: yes
+
+- name: Copy our base configuration to the share directory
+  copy:
+    src: "./lazy.lua"
+    dest: "~/.config/nvim/lua/config/lazy.lua"
+
+- debug:
+    msg: "LazyVim installed. You have been provided with my basic configuration for Neovim. You can enable further extras by using the :LazyExtras command in Neovim."
