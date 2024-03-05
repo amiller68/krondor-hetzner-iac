@@ -13,12 +13,13 @@ Scripts assume Ubuntu 22.04 LTS environment.
 ## Dependencies
 - Python
 - Ansible
+- Brew and Rustup (just for installing some packages via the `local` playbooks)
 
 ## What actually does this implement?
 In order of complexity, this repository includes documentation and scripts for:
 - setting up a dedicated server on Hetzner with an administrator
 - securing and administering the server
-- creating and managing users and services
+- creating and managing users and services (IPFS, telgram bot, etc)
 - load balancer implementation for serving services over HTTPS
 
 See `./docs` for full walkthroughs and notes

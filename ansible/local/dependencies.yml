@@ -1,0 +1,21 @@
+# Install required system dependencies for runnning all services
+- hosts: all
+  name: Install all terminal dependencies for stuff I use
+  tasks:
+    - name: Update Apt
+      become: yes
+      apt:
+        name: "*"
+        state: latest
+        force_apt_get: true
+    - name: Install Apt Dependencies
+      become: yes
+      apt:
+        name: "{{ item }}"
+        state: present
+        force_apt_get: true
+      # TODO: can i scope these to specific groups?
+      # register packages you want available to all users here
+      with_items:
+        # There's not much here at the moment
+        - git
