@@ -14,7 +14,7 @@
 
     - name: Exit if the user exists
       meta: end_play
-      when: user_check.rc != 0
+      when: user_check.rc == 0
 
     - name: Generate a random password
       set_fact:

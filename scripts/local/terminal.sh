@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-ansible-playbook -i ./hosts/local \
+ansible-playbook \
     ./ansible/local/terminal/setup.yml

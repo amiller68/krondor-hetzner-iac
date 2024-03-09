@@ -1,0 +1,17 @@
+all:
+  hosts:
+    debian_vm_1:
+      ansible_host: 192.168.80.2
+      ansible_port: 22
+      ansible_user: admin
+      ansible_ssh_pass: admin
+    debian_vm_2:
+      ansible_host: 192.168.80.4
+      ansible_port: 22
+      ansible_user: admin
+      ansible_ssh_pass: admin
+    debian_vm_3:
+      ansible_host: 192.168.80.3
+      ansible_port: 22
+      ansible_user: admin
+      ansible_ssh_pass: admin

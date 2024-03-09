@@ -1,0 +1,30 @@
+version: '3.7'
+
+services:
+  debian1:
+    build: .
+    container_name: debian_vm_1
+    ports:
+      - "2222:22"
+    networks:
+      - cluster_network
+
+  debian2:
+    build: .
+    container_name: debian_vm_2
+    ports:
+      - "2223:22"
+    networks:
+      - cluster_network
+
+  debian3:
+    build: .
+    container_name: debian_vm_3
+    ports:
+      - "2224:22"
+    networks:
+      - cluster_network
+
+networks:
+  cluster_network:
+    driver: bridge

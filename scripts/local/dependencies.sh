@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-ansible-playbook -i ./hosts/local \
+ansible-playbook \
     --ask-become-pass \
     ./ansible/local/dependencies.yml

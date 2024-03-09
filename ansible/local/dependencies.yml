@@ -1,5 +1,5 @@
 # Install required system dependencies for runnning all services
-- hosts: all
+- hosts: localhost
   name: Install all terminal dependencies for stuff I use
   tasks:
     - name: Update Apt
