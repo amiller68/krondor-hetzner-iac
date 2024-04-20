@@ -1,0 +1,6 @@
+# Start our IPFS service on the host
+- hosts: all
+  name: Run Ollama
+  tasks:
+    - name: Start the ollama service
+      import_tasks: ./ollama/tasks.yml

@@ -1,0 +1,23 @@
+# Start Ipfs on the host
+
+- name: Check if the ollama user exists
+  become: yes
+  shell: "id ollama"
+  register: ollama_user_check
+  ignore_errors: yes
+
+- name: Create the ollama user
+  become: yes
+  shell: "useradd -r -s /bin/false -m -d /usr/share/ollama ollama"
+  when: ollama_user_check.rc != 0
+
+- name: Install ollama
+  import_tasks: ./install.tasks.yml
+  when: ollama_user_check.rc != 0
+
+- name: Start the ipfs service
+  become: yes
+  systemd:
+    name: ipfs
+    enabled: yes
+    state: restarted

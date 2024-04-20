@@ -1,0 +1,28 @@
+- name: Install Ollama
+  become: yes
+  shell: "curl -L https://ollama.com/download/ollama-linux-amd64 -o /usr/bin/ollama"
+
+- name: Make Ollama executable
+  become: yes
+  shell: "chmod +x /usr/bin/ollama"
+
+- name: Create a systemd service for Ollama
+  become: yes
+  copy:
+    src: ./ollama.service
+    dest: /etc/systemd/system/ollama.service
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Reload systemd
+  become: yes
+  systemd:
+    daemon_reload: yes
+
+- name: Enable the Ollama service
+  become: yes
+  systemd:
+    name: ollama
+    enabled: yes
+    state: started
