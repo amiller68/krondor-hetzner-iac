@@ -17,23 +17,12 @@
     path: /etc/nginx/sites-enabled/default
     state: absent
 
-# TODO: I might need to properly ensure that this directory exists
-#  For the time being, I know it exists on my current host
-- name: Copy static site files assets
-  become: yes
-  copy:
-    src: ./static/site
-    dest: "/var/www/html/{{ domain }}"
-    owner:  www-data
-    group: www-data
-    mode: 0643
-
-# Setup root domain
+# Set up Corpo under the root domain
 
 - name: Setup server block
   become: yes
   template:
-    src: ./config.j2
+    src: ./corpo.config.j2
     dest: "/etc/nginx/sites-available/{{ domain }}"
 
 - name: Enable the server block
@@ -47,6 +36,36 @@
   import_tasks: ./ssl.tasks.yml
   vars:
     target_domain: "{{ domain }}"
+    email: "{{ email }}"
+
+# Setup blog sub domain
+
+- name: Setup server block
+  become: yes
+  template:
+    src: ./blog.config.j2
+    dest: "/etc/nginx/sites-available/blog.{{ domain }}"
+
+- name: Copy static site files assets
+  become: yes
+  copy:
+    src: ./static/site
+    dest: "/var/www/html/blog.{{ domain }}"
+    owner:  www-data
+    group: www-data
+    mode: 0643
+
+- name: Enable the server block
+  become: yes
+  file:
+    src: "/etc/nginx/sites-available/blog.{{ domain }}"
+    dest: "/etc/nginx/sites-enabled/blog.{{ domain }}"
+    state: link
+
+- name: Setup domain SSL certificate
+  import_tasks: ./ssl.tasks.yml
+  vars:
+    target_domain: "blog.{{ domain }}"
     email: "{{ email }}"
 
 # Setup ipfs sub domain. Setup a basic auth for the ipfs api.

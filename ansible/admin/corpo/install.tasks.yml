@@ -1,0 +1,55 @@
+# - name: Pull the repo for corpo 
+#   remote_user: corpo
+#   shell: "git clone https://github.com/amiller68/corpo.git"
+#   args:
+#     chdir: "/home/corpo"
+
+- name: Checkout main 
+  remote_user: corpo
+  shell: "git checkout main"
+  args:
+    chdir: "/home/corpo/corpo"
+
+- name: Pull the repo for corpo
+  remote_user: corpo
+  shell: "git pull"
+  args:
+    chdir: "/home/corpo/corpo"
+
+# You'll actually need to setup podman to allow docker.io images to be pulled
+
+- name: Build Corpo Container
+  remote_user: corpo
+  shell: "podman build -t corpo ."
+  args:
+    chdir: /home/corpo/corpo
+
+- name: Create a run script for corpo
+  become: yes
+  copy:
+    src: ./run.sh
+    dest: /home/corpo/run.sh
+    owner: corpo
+    group: corpo
+    mode: '0755'
+
+- name: Create a systemd service for corpo
+  become: yes
+  copy:
+    src: ./corpo.service
+    dest: /etc/systemd/system/corpo.service
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Reload systemd
+  become: yes
+  systemd:
+    daemon_reload: yes
+
+- name: Enable the corpo service
+  become: yes
+  systemd:
+    name: corpo
+    enabled: yes
+    state: started

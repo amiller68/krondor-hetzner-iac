@@ -1,0 +1,13 @@
+[Unit]
+Description=Corpo Server
+After=network.target
+
+[Service]
+User=corpo
+ExecStart=cd /home/corpo && ./run.sh
+StandardOutput=journal
+Restart=on-failure
+KillSignal=SIGINT
+
+[Install]
+WantedBy=multi-user.target
