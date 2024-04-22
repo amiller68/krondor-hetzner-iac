@@ -12,16 +12,9 @@
     service_user: corpo
   when: corpo_user_check.rc != 0
 
-- name: Check if the /home/corpo/corpo directory exists
-  become: yes
-  stat: 
-    path: /home/corpo/corpo
-  register: corpo_dir_stat
-
 # We'll just take the existence of the .corpo directory as a sign that the corpo user has been initialized
 - name: Install corpo and create the corpo user
   import_tasks: ./install.tasks.yml
-  # when: corpo_dir_stat.stat.exists == False
 
 - name: Start the corpo service
   become: yes

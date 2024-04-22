@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 User=corpo
-ExecStart=cd /home/corpo && ./run.sh
+ExecStart=podman start corpo
 StandardOutput=journal
 Restart=on-failure
 KillSignal=SIGINT

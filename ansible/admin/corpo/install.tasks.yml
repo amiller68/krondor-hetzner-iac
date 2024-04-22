@@ -1,8 +1,16 @@
-# - name: Pull the repo for corpo 
-#   remote_user: corpo
-#   shell: "git clone https://github.com/amiller68/corpo.git"
-#   args:
-#     chdir: "/home/corpo"
+# Check if the repo exists
+- name: Check if the corpo repo exists
+  remote_user: corpo
+  shell: "ls /home/corpo/corpo"
+  register: corpo_repo_check
+  ignore_errors: yes
+
+- name: Pull the repo for corpo 
+  remote_user: corpo
+  shell: "git clone https://github.com/amiller68/corpo.git"
+  args:
+    chdir: "/home/corpo"
+  when: corpo_repo_check.rc != 0
 
 - name: Checkout main 
   remote_user: corpo
@@ -16,22 +24,31 @@
   args:
     chdir: "/home/corpo/corpo"
 
-# You'll actually need to setup podman to allow docker.io images to be pulled
+# - name: Build Corpo Image
+#   remote_user: corpo
+#   shell: "podman build -t corpo ."
+#   args:
+#     chdir: /home/corpo/corpo
 
-- name: Build Corpo Container
+- name: Check if the corpo container exists
   remote_user: corpo
-  shell: "podman build -t corpo ."
-  args:
-    chdir: /home/corpo/corpo
+  shell: "podman ps -a | grep corpo"
+  register: corpo_container_check
+  ignore_errors: yes
 
-- name: Create a run script for corpo
-  become: yes
-  copy:
-    src: ./run.sh
-    dest: /home/corpo/run.sh
-    owner: corpo
-    group: corpo
-    mode: '0755'
+- name: Stop the corpo container
+  remote_user: corpo
+  shell: "podman stop corpo"
+  when: corpo_container_check.rc == 0
+
+- name: Remove the old container
+  remote_user: corpo
+  shell: "podman rm -f corpo"
+  ignore_errors: yes
+
+- name: Create our Corpo Container
+  remote_user: corpo
+  shell: "podman run -d --name corpo -p 3000:3000 localhost/corpo"
 
 - name: Create a systemd service for corpo
   become: yes
