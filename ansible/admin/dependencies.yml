@@ -8,7 +8,7 @@
         name: "*"
         state: latest
         force_apt_get: true
-    - name: Install Dependencies
+    - name: Install Apt Dependencies
       become: yes
       apt:
         name: "{{ item }}"
@@ -27,3 +27,7 @@
         - apache2-utils
         - python3
         - python3-pip
+        # NOTE: docker.io registries won't be available until you 
+        #  set the registries in /etc/containers/registries.conf
+        - podman
+        - curl

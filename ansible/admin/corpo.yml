@@ -1,0 +1,6 @@
+# Start our IPFS service on the host
+- hosts: all
+  name: Run Corpo
+  tasks:
+    - name: Start the corpo service
+      import_tasks: ./corpo/tasks.yml

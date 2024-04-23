@@ -1,0 +1,60 @@
+# Check if the repo exists
+- name: Check if the corpo repo exists
+  remote_user: corpo
+  shell: "ls /home/corpo/corpo"
+  register: corpo_repo_check
+  ignore_errors: yes
+
+- name: Pull the repo for corpo 
+  remote_user: corpo
+  shell: "git clone https://github.com/amiller68/corpo.git"
+  args:
+    chdir: "/home/corpo"
+  when: corpo_repo_check.rc != 0
+
+- name: Checkout main 
+  remote_user: corpo
+  shell: "git checkout main"
+  args:
+    chdir: "/home/corpo/corpo"
+
+- name: Pull the repo for corpo
+  remote_user: corpo
+  shell: "git pull"
+  args:
+    chdir: "/home/corpo/corpo"
+
+- name: Build Corpo Image
+  remote_user: corpo
+  shell: "podman build -t corpo ."
+  args:
+    chdir: /home/corpo/corpo
+
+- name: Check if the corpo container exists
+  remote_user: corpo
+  shell: "podman ps -a | grep corpo"
+  register: corpo_container_check
+  ignore_errors: yes
+
+- name: Stop the corpo container
+  remote_user: corpo
+  shell: "podman stop corpo"
+  when: corpo_container_check.rc == 0
+
+- name: Remove the old container
+  remote_user: corpo
+  shell: "podman rm -f corpo"
+  ignore_errors: yes
+
+# TODO: ya know, i should really just jump into k3s at this point.
+#  I tried going down the road of using podman and systemd to manage the containers,
+#   BUT it actually ended up being bery annoying to setup and manage.
+#    So for now we're just gonna do raw podman and pray.
+
+- name: Enable lingering for the "corpo" user
+  become: yes
+  command: loginctl enable-linger 1006
+
+- name: Create our Corpo Container
+  remote_user: corpo
+  shell: "podman run -d --name corpo -p 3000:3000 localhost/corpo"

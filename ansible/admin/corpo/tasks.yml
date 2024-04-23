@@ -1,0 +1,17 @@
+# Start corpo on the host
+
+- name: Check if the corpo user exists
+  become: yes
+  shell: "id corpo"
+  register: corpo_user_check
+  ignore_errors: yes
+
+- name: Create the corpo service user
+  import_tasks: ../utils/create_service.tasks.yml
+  vars:
+    service_user: corpo
+  when: corpo_user_check.rc != 0
+
+# We'll just take the existence of the .corpo directory as a sign that the corpo user has been initialized
+- name: Install corpo and create the corpo user
+  import_tasks: ./install.tasks.yml
