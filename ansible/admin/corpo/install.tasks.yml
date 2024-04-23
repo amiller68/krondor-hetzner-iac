@@ -24,11 +24,11 @@
   args:
     chdir: "/home/corpo/corpo"
 
-# - name: Build Corpo Image
-#   remote_user: corpo
-#   shell: "podman build -t corpo ."
-#   args:
-#     chdir: /home/corpo/corpo
+- name: Build Corpo Image
+  remote_user: corpo
+  shell: "podman build -t corpo ."
+  args:
+    chdir: /home/corpo/corpo
 
 - name: Check if the corpo container exists
   remote_user: corpo
@@ -46,27 +46,15 @@
   shell: "podman rm -f corpo"
   ignore_errors: yes
 
+# TODO: ya know, i should really just jump into k3s at this point.
+#  I tried going down the road of using podman and systemd to manage the containers,
+#   BUT it actually ended up being bery annoying to setup and manage.
+#    So for now we're just gonna do raw podman and pray.
+
+- name: Enable lingering for the "corpo" user
+  become: yes
+  command: loginctl enable-linger 1006
+
 - name: Create our Corpo Container
   remote_user: corpo
   shell: "podman run -d --name corpo -p 3000:3000 localhost/corpo"
-
-- name: Create a systemd service for corpo
-  become: yes
-  copy:
-    src: ./corpo.service
-    dest: /etc/systemd/system/corpo.service
-    owner: root
-    group: root
-    mode: '0644'
-
-- name: Reload systemd
-  become: yes
-  systemd:
-    daemon_reload: yes
-
-- name: Enable the corpo service
-  become: yes
-  systemd:
-    name: corpo
-    enabled: yes
-    state: started

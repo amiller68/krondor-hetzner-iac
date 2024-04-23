@@ -15,10 +15,3 @@
 # We'll just take the existence of the .corpo directory as a sign that the corpo user has been initialized
 - name: Install corpo and create the corpo user
   import_tasks: ./install.tasks.yml
-
-- name: Start the corpo service
-  become: yes
-  systemd:
-    name: corpo
-    enabled: yes
-    state: restarted
