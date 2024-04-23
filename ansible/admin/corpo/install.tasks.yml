@@ -51,9 +51,10 @@
 #   BUT it actually ended up being bery annoying to setup and manage.
 #    So for now we're just gonna do raw podman and pray.
 
-- name: Enable lingering for the "corpo" user
-  become: yes
-  command: loginctl enable-linger 1006
+# TODO: toggle this the first time you run this!
+# - name: Enable lingering for the "corpo" user
+#   become: yes
+#   command: loginctl enable-linger 1006
 
 - name: Create our Corpo Container
   remote_user: corpo
