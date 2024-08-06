@@ -1,0 +1,30 @@
+# Setup a new service
+# - service_user: the service user
+
+- name: Debug
+  debug:
+    msg: 
+     - "Create Service User"
+     - "{{ service_user }}"
+
+- name: Check if the service user exists
+  become: yes
+  shell: "id {{ service_user }}"
+  register: user_check
+  ignore_errors: yes
+
+- name: Create the service user
+  become: yes
+  user:
+    name: "{{ service_user }}"
+    shell: /bin/bash
+    state: present
+  when: user_check.rc != 0
+
+- name: Make sure the service user has a home directory
+  become: yes
+  file:
+    path: "/home/{{ service_user }}"
+    state: directory
+    owner: "{{ service_user }}"
+    group: "{{ service_user }}"

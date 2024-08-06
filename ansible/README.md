@@ -1,1 +1,0 @@
-Ansible meant for setting up remote environments meant to run dataprep for testing and demoing purposes

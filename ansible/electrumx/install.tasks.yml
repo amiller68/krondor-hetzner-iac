@@ -1,0 +1,91 @@
+- name: Clone electrumx
+  become: yes
+  become_user: electrumx
+  git:
+    repo: https://github.com/spesmilo/electrumx.git
+    dest: /home/electrumx/electrumx
+
+- name: Create directory for virtual environment
+  file:
+    path: /opt/electrumx_venv
+    state: directory
+    owner: electrumx
+    group: electrumx
+    mode: '0755'
+  become: yes
+
+- name: Create virtual environment
+  command:
+    cmd: python3 -m venv /opt/electrumx_venv
+    creates: /opt/electrumx_venv/bin/activate
+  become: yes
+  become_user: electrumx
+
+- name: Create directory for ElectrumX
+  file:
+    path: /opt/electrumx
+    state: directory
+    owner: electrumx
+    group: electrumx
+    mode: '0755'
+  become: yes
+
+- name: Clone ElectrumX repository
+  git:
+    repo: 'https://github.com/spesmilo/electrumx.git'
+    dest: /opt/electrumx
+  become: yes
+  become_user: electrumx
+
+- name: Install ElectrumX and its dependencies
+  pip:
+    name:
+      - aiohttp 
+      - plyvel
+      - /opt/electrumx
+    virtualenv: /opt/electrumx_venv
+    state: present
+  become: yes
+  become_user: electrumx
+
+- name: Make sure leveldb data dir exists and is writable by electrumx
+  become: yes
+  file:
+    # NOTE: avi made this mount specifically
+    #  on the bitcoinbox-2 host. This needs to be
+    #   changed if the electrumx host is changed
+    path: /mnt/volume_nyc_02/electrumx/leveldb
+    state: directory
+    owner: electrumx
+    group: electrumx
+    mode: '0755'
+
+- name: Copy electrumx service file from the control machine
+  become: yes
+  copy:
+    src: ./electrumx.service
+    dest: /etc/systemd/system/electrumx.service
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Copy the electrumx.conf file from the control machine
+  become: yes
+  copy:
+    src: ./electrumx.conf
+    dest: /etc/electrumx.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Reload systemd
+  become: yes
+  systemd:
+    daemon_reload: yes
+
+- name: Enable the electrumx service
+  become: yes
+  systemd:
+    name: electrumx
+    enabled: yes
+    state: started

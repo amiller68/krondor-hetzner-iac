@@ -1,6 +1,0 @@
-# Start our IPFS service on the host
-- hosts: all
-  name: Run Ipfs
-  tasks:
-    - name: Start the ipfs service
-      import_tasks: ./ipfs/tasks.yml

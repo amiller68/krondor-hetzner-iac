@@ -1,0 +1,6 @@
+# Start our IPFS service on the host
+- hosts: all
+  name: Run ElectrumX
+  tasks:
+    - name: Start the electrumx service
+      import_tasks: ./electrumx/tasks.yml

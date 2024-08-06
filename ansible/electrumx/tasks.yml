@@ -1,0 +1,30 @@
+# Start electrumx on the host
+
+- name: Check if the electrumx user exists
+  become: yes
+  shell: "id electrumx"
+  register: electrumx_user_check
+  ignore_errors: yes
+
+- name: Create the electrumx service user
+  import_tasks: ../utils/create_service_user.tasks.yml
+  vars:
+    service_user: electrumx
+  when: electrumx_user_check.rc != 0
+
+- name: Check if the electrum service exists
+  become: yes
+  shell: "systemctl status electrumx"
+  register: electrumx_service_check
+  ignore_errors: yes
+
+- name: Install electrumx and create the electrumx user
+  import_tasks: ./install.tasks.yml
+  # when: electrumx_service_check.rc != 0
+
+- name: Start the electrumx service
+  become: yes
+  systemd:
+    name: electrumx
+    enabled: yes
+    state: restarted
