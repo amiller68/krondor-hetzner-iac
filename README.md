@@ -1,3 +1,11 @@
+# ARCHIVED
+
+I think I've taken this pattern as far as I can :).
+I've personally moved on to implementing this pattern directly withing projects themselves.
+This seems to be more flexible / extensible than maintaining it in one monolithic repo, as this project did (managing my blog, ipfs instance, and personal site on one host).
+However this repo may still be helpful to anyone wanting to learn more about scripting python together with ansible and some tricks for doing so.
+I hope to take the lessons I've learned here and maybe make something more general purpose and extensible to a wider variety of infrastructure, so stay tuned for more.
+
 # Krondor Hetzner IaC
 
 I am creating this repository to collect the scripts and playbooks that I find myself running over and over again, and hate doing by hand.
